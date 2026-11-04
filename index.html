@@ -395,6 +395,23 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .ct-table .was { display: block; text-decoration: line-through; color: var(--muted); font-size: 11.5px; }
 .ct-role { width: 140px; border: 1px solid var(--line-2); border-radius: 4px; padding: 4px 6px; font: inherit; font-size: 12.5px; }
 .ct-table input[type=checkbox] { accent-color: var(--slate); width: 15px; height: 15px; }
+/* Review checklist */
+.iss-act { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px dashed var(--line-2); padding-top: 8px; margin-top: 2px; }
+.find .iss-act { border-top: 0; padding-top: 0; margin: 0; justify-content: flex-end; }
+.iss-chk { display: flex; gap: 7px; align-items: center; font-size: 12.5px; color: var(--sub); cursor: pointer; }
+.iss-chk input { accent-color: var(--ok); width: 16px; height: 16px; }
+.iss-act .btn:disabled { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); cursor: not-allowed; }
+.ans.reviewed { border-color: #9cc8b2; background: #f6fbf8; }
+.find.reviewed { background: #f6fbf8; }
+.find.reviewed .iss-chk { color: #2f7556; }
+.sumbox { display: grid; gap: 8px; border: 1px solid var(--slate); border-radius: 8px; padding: 12px 14px; background: var(--surface); }
+.sumbox textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--line-2); border-radius: 6px; padding: 10px 12px; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.6; background: var(--surface-2); color: var(--fg); }
+.sumbox textarea:focus { outline: none; border-color: var(--slate); background: var(--surface); }
+.sumbox .grp { display: flex; gap: 8px; }
+.sumbox .note { margin: 0; }
+.aidraft { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
+.aidraft summary { cursor: pointer; font-size: 12.5px; color: var(--sub); font-weight: 600; }
+.aidraft[open] summary { margin-bottom: 8px; }
 .pickrow { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
 .pickrow select { flex: 1; min-width: 200px; width: auto; }
 .edited { margin-left: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--brass); font-weight: 600; }
@@ -1075,11 +1092,7 @@ ${list(F.next.value)}
 Needed from you:
 ${list(F.need.value)}
 
-Please reply with any questions.
-
-Patrick Johnson
-Project Manager: Kellen Minor
-ai3`;
+Please reply with any questions.`;
 }
 function renderOwu() { $("#owuOut").textContent = owuText(); }
 Object.values(F).forEach(el => el.addEventListener("input", renderOwu));
@@ -1492,6 +1505,52 @@ function openWaiver(kind) {
   window.scrollTo({ top: 0 });
 }
 
+/* ---------- Review checklist: mark each suggested issue reviewed, then add it to the summary ---------- */
+const IK = {
+  controls: i => `<div class="iss-act"><label class="iss-chk"><input type="checkbox" data-rev="${i}"> Issue has been reviewed</label><button class="btn sm" type="button" data-add="${i}" disabled>Add to summary</button></div>`,
+  box: (label, hint) => `<div class="sumbox">
+      <div class="draft-h"><span class="label">${esc(label)}</span><div class="grp"><button class="btn ghost sm" type="button" id="sumClear">Clear</button><button class="btn sm" type="button" id="sumCopy">Copy summary</button></div></div>
+      <textarea id="sumText" placeholder="${esc(hint)}"></textarea>
+      <p class="note" id="sumCount"></p>
+    </div>`,
+  /* r: result object (state is kept on it), texts: summary line per issue, persist(): save state */
+  wire(r, texts, persist) {
+    r._rev = r._rev || {}; r._added = r._added || {}; if (typeof r._sum !== "string") r._sum = "";
+    const ta = $("#sumText"); ta.value = r._sum;
+    let t; const save = () => { clearTimeout(t); t = setTimeout(() => persist && persist(), 400); };
+    const count = () => { const n = Object.keys(r._rev).filter(k => r._rev[k]).length, a = Object.keys(r._added).filter(k => r._added[k]).length; $("#sumCount").textContent = `${n} of ${texts.length} issue${texts.length === 1 ? "" : "s"} reviewed · ${a} added to the summary`; };
+    const paint = i => {
+      const cb = document.querySelector(`[data-rev="${i}"]`), b = document.querySelector(`[data-add="${i}"]`); if (!cb || !b) return;
+      cb.checked = !!r._rev[i];
+      b.disabled = !r._rev[i] || !!r._added[i];
+      b.textContent = r._added[i] ? "Added ✓" : "Add to summary";
+      cb.closest(".ans, .find").classList.toggle("reviewed", !!r._rev[i]);
+    };
+    texts.forEach((_, i) => {
+      paint(i);
+      const cb = document.querySelector(`[data-rev="${i}"]`), b = document.querySelector(`[data-add="${i}"]`); if (!cb || !b) return;
+      cb.addEventListener("change", () => { r._rev[i] = cb.checked; if (!cb.checked) r._added[i] = false; paint(i); count(); save(); });
+      b.addEventListener("click", () => {
+        const n = (ta.value.match(/^\d+\./gm) || []).length + 1;
+        ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, "") + "\n" : "") + `${n}. ${texts[i]}`;
+        r._sum = ta.value; r._added[i] = true; paint(i); count(); save();
+        toast("Added to the summary");
+      });
+    });
+    ta.addEventListener("input", () => { r._sum = ta.value; save(); });
+    $("#sumClear").addEventListener("click", () => { ta.value = ""; r._sum = ""; r._added = {}; texts.forEach((_, i) => paint(i)); count(); save(); });
+    $("#sumCopy").addEventListener("click", () => {
+      const fb = () => { ta.select(); toast("Text selected. Press Ctrl+C to copy."); };
+      if (!ta.value.trim()) return toast("The summary is empty. Review an issue and add it first.");
+      try { navigator.clipboard.writeText(ta.value).then(() => toast("Summary copied"), fb); } catch (e) { fb(); }
+    });
+    count();
+  },
+  /* Save the checklist and summary back into the tool's history entry */
+  persistTo(holder, r) { return () => { if (!holder.hist) return; holder.hist.data.result = JSON.parse(JSON.stringify(Object.assign({}, r, { _rev: r._rev, _added: r._added, _sum: r._sum }))); STORE.putHist(holder.hist); }; },
+  src: ss => (Array.isArray(ss) ? ss : []).map(s => [s.sheet || s.paragraph, s.file ? `${s.file}${s.page ? ", p. " + s.page : ""}` : s.page ? `p. ${s.page}` : ""].filter(Boolean).join(", ")).filter(Boolean).join("; ")
+};
+
 /* ---------- Review RFI ---------- */
 const RFI = { file: null, pages: [], ctl: null, result: null };
 const pdfIndex = {};          // discipline code -> { name, pages: [text] } for loaded PDFs
@@ -1563,6 +1622,9 @@ async function loadRfiFile(f) {
     $("#rfiText").value = txt.slice(0, 6000);
     const num = txt.match(/RFI\s*(?:No\.?|Number|#)?\s*[:#]?\s*(\d{1,4})/i);
     if (num && !$("#rfiNum").value) $("#rfiNum").value = num[1];
+    if (!txt) setRfiStatus("Type or paste the RFI question, then click Search drawings for an answer.");
+    else if (rfiSources().some(s => s.file)) runRfiSearch();
+    else setRfiStatus("Add the drawing PDFs on the right, then click Search drawings for an answer.");
   } catch (e) {
     $("#rfiDropHint").textContent = "Couldn't read this PDF. Type or paste the question below.";
     toast(e.message || "Couldn't read this PDF");
@@ -1673,7 +1735,7 @@ async function runRfiSearch() {
     const res = await sample.json(rfiPrompt(q, $("#rfiNum").value.trim(), picked, imgNotes), { modelTier: "complex", signal, images: images.length ? images : undefined });
     if (!res || typeof res !== "object") throw { code: "invalid_json" };
     RFI.result = res;
-    histAdd("rfi", `RFI ${res.rfi_number || $("#rfiNum").value.trim() || ""}${res.subject ? " · " + res.subject : ""}`.trim(), `${(res.answers || []).length} possible answer${(res.answers || []).length === 1 ? "" : "s"}`, { question: q, num: $("#rfiNum").value.trim(), result: res });
+    RFI.hist = histAdd("rfi", `RFI ${res.rfi_number || $("#rfiNum").value.trim() || ""}${res.subject ? " · " + res.subject : ""}`.trim(), `${(res.answers || []).length} possible answer${(res.answers || []).length === 1 ? "" : "s"}`, { question: q, num: $("#rfiNum").value.trim(), result: res });
     setRfiStatus(`Searched ${docs.reduce((a, d) => a + d.pages.length, 0)} pages; reviewed the ${picked.length} most related.`);
     $("#rfiShow").hidden = false;
     showRfiResult(res, false);
@@ -1714,18 +1776,15 @@ function showRfiResult(r, example) {
         ${(Array.isArray(a.sources) ? a.sources : []).map(s => `
           <div class="srcref"><span class="sref">${s.sheet ? esc(String(s.sheet)) + " · " : ""}${esc(String(s.file || ""))}, p. ${esc(String(s.page || "?"))}</span>
           ${s.excerpt ? `<q>${esc(String(s.excerpt))}</q>` : ""}</div>`).join("")}
+        ${IK.controls(i)}
       </article>`).join("") : `<p class="none">The drawings don't appear to answer this RFI. It likely needs a design decision.</p>`}
     ${Array.isArray(r.not_found) && r.not_found.length ? `<span class="label">Not found in the documents</span><ul class="nf">${r.not_found.map(x => `<li>${esc(String(x))}</li>`).join("")}</ul>` : ""}
-    <div class="draft-h"><span class="label">Draft response</span><button class="btn sm" type="button" id="rfiCopy">Copy response</button></div>
-    <pre class="out" id="rfiDraft">${esc(String(r.draft_response || ""))}</pre>
+    ${IK.box("Summary", "Check \u201cIssue has been reviewed\u201d on an answer above, then add it here. You can edit this text or type your own response.")}
+    <details class="aidraft"><summary>AI draft response</summary><pre class="out" id="rfiDraft">${esc(String(r.draft_response || ""))}</pre></details>
     <p class="note">AI-generated from the drawing text. Check every cited sheet before you respond.</p>`;
   const title = `Possible answers${r.rfi_number ? " · RFI " + r.rfi_number : ""}${r.subject ? " · " + r.subject : ""}`;
   openModal(title, html, true);
-  $("#rfiCopy").addEventListener("click", () => {
-    const txt = $("#rfiDraft").textContent;
-    const fb = () => { const rg = document.createRange(); rg.selectNodeContents($("#rfiDraft")); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); toast("Text selected. Press Ctrl+C to copy."); };
-    try { navigator.clipboard.writeText(txt).then(() => toast("Response copied"), fb); } catch (e) { fb(); }
-  });
+  IK.wire(r, answers.map(a => { const s = IK.src(a.sources); return `${String(a.answer || "")}${s ? ` (${s})` : ""}`; }), example ? null : IK.persistTo(RFI, r));
 }
 
 const RFI_EXAMPLE = {
@@ -1789,6 +1848,8 @@ async function loadSubFile(f) {
       const t = txt.match(/(?:Description|Title|Item)\s*[:\-]\s*([^\n]{4,80}?)(?:\s{2,}|Spec|Section|Submittal|$)/i);
       if (t) $("#subDesc").value = t[1].trim();
     }
+    if (rfiSources().some(s => s.file)) runSubReview();
+    else setSubStatus("Add the project manual and drawing PDFs on the right, then click Review submittal.");
   } catch (e) {
     $("#subDropHint").textContent = "Couldn't read this PDF.";
     toast(e.message || "Couldn't read this PDF");
@@ -1868,7 +1929,7 @@ async function runSubReview() {
     const res = await sample.json(subPrompt(subText, meta, picked, imgNotes), { modelTier: "complex", signal, images: images.length ? images : undefined });
     if (!res || typeof res !== "object") throw { code: "invalid_json" };
     SUB.result = res;
-    histAdd("sub", `Submittal ${res.submittal_number || meta.num || ""}${res.title ? " · " + res.title : ""}`.trim(), String(res.recommended_action || ""), { num: meta.num, spec: meta.spec, desc: meta.desc, result: res });
+    SUB.hist = histAdd("sub", `Submittal ${res.submittal_number || meta.num || ""}${res.title ? " · " + res.title : ""}`.trim(), String(res.recommended_action || ""), { num: meta.num, spec: meta.spec, desc: meta.desc, result: res });
     setSubStatus(`Compared ${SUB.pages.length} submittal page${SUB.pages.length === 1 ? "" : "s"} with the ${picked.length} most related document pages.`);
     $("#subShow").hidden = false;
     showSubResult(res, false);
@@ -1893,6 +1954,7 @@ function showSubResult(r, example) {
   const stCls = { complies: "hi", deviation: "bad", missing: "md", unclear: "lo" };
   const checks = Array.isArray(r.checks) ? r.checks : [];
   const counts = checks.reduce((a, c) => (a[c.status] = (a[c.status] || 0) + 1, a), {});
+  const missing = Array.isArray(r.missing_info) ? r.missing_info : [];
   const html = `
     ${example ? `<p class="exnote">Example result with sample data. Load the submittal and project manual PDFs to run a real review.</p>` : ""}
     <div class="stamp-row">
@@ -1902,7 +1964,7 @@ function showSubResult(r, example) {
     ${r.summary ? `<p class="rsum">${esc(String(r.summary))}</p>` : ""}
     <div class="tally">${["deviation", "missing", "unclear", "complies"].filter(k => counts[k]).map(k => `<span class="conf ${stCls[k]}">${counts[k]} ${stLabel[k]}</span>`).join("")}</div>
     <span class="label">Checks against the contract documents</span>
-    ${checks.length ? checks.map(c => `
+    ${checks.length ? checks.map((c, i) => `
       <article class="ans">
         <div class="ans-h"><span class="conf ${stCls[c.status] || "lo"}">${esc(stLabel[c.status] || String(c.status || ""))}</span><span class="chk-item">${esc(String(c.item || ""))}</span></div>
         <div class="cmp">
@@ -1912,18 +1974,18 @@ function showSubResult(r, example) {
         ${(Array.isArray(c.sources) ? c.sources : []).map(s => `
           <div class="srcref"><span class="sref">${s.sheet ? esc(String(s.sheet)) + " · " : ""}${esc(String(s.file || ""))}, p. ${esc(String(s.page || "?"))}</span>
           ${s.excerpt ? `<q>${esc(String(s.excerpt))}</q>` : ""}</div>`).join("")}
+        ${IK.controls(i)}
       </article>`).join("") : `<p class="none">No specific requirements were found to check. Make sure the project manual is loaded.</p>`}
-    ${Array.isArray(r.missing_info) && r.missing_info.length ? `<span class="label">Missing from the submittal</span><ul class="nf">${r.missing_info.map(x => `<li>${esc(String(x))}</li>`).join("")}</ul>` : ""}
-    <div class="draft-h"><span class="label">Review comments</span><button class="btn sm" type="button" id="subCopy">Copy comments</button></div>
-    <pre class="out" id="subComments">${esc(String(r.review_comments || ""))}</pre>
+    ${missing.length ? `<span class="label">Missing from the submittal</span>${missing.map((x, j) => `<div class="find"><span class="conf md">Missing</span><span class="ft">${esc(String(x))}</span>${IK.controls(checks.length + j)}</div>`).join("")}` : ""}
+    ${IK.box("Summary", "Check \u201cIssue has been reviewed\u201d on an item above, then add it here. Edit freely before you return the submittal.")}
+    <details class="aidraft"><summary>AI draft review comments</summary><pre class="out" id="subComments">${esc(String(r.review_comments || ""))}</pre></details>
     <p class="note">AI-generated. The architect of record makes the final review action; verify each item before stamping.</p>`;
   const title = `Submittal review${r.submittal_number ? " · " + r.submittal_number : ""}${r.title ? " · " + r.title : ""}`;
   openModal(title, html, true);
-  $("#subCopy").addEventListener("click", () => {
-    const txt = $("#subComments").textContent;
-    const fb = () => { const rg = document.createRange(); rg.selectNodeContents($("#subComments")); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); toast("Text selected. Press Ctrl+C to copy."); };
-    try { navigator.clipboard.writeText(txt).then(() => toast("Comments copied"), fb); } catch (e) { fb(); }
-  });
+  IK.wire(r, [
+    ...checks.map(c => { const s = IK.src(c.sources); return `${String(c.item || "")}: ${stLabel[c.status] || c.status || ""}. Submitted: ${String(c.submitted || "\u2014")}. Required: ${String(c.required || "\u2014")}${s ? ` (${s})` : ""}.`; }),
+    ...missing.map(x => `Provide: ${String(x)}`)
+  ], example ? null : IK.persistTo(SUB, r));
 }
 
 const SUB_EXAMPLE = {
@@ -2308,6 +2370,8 @@ async function loadSrFile(f) {
     if (secs[0] && !$("#srSpec").value) $("#srSpec").value = secs[0].replace(/(\d{2})(\d{2})(\d{2})/, "$1 $2 $3");
     const num = txt.match(/(?:Substitution|Request)\s*(?:Request)?\s*(?:No\.?|Number|#)\s*[:#]?\s*([0-9][0-9A-Za-z.\-]{0,10})/i);
     if (num && !$("#srNum").value) $("#srNum").value = num[1];
+    if (pmSource().file) runSrReview();
+    else setSrStatus("Add the project manual PDF on the right, then click Review substitution.");
   } catch (e) { $("#srDropHint").textContent = "Couldn't read this PDF."; toast(e.message || "Couldn't read this PDF"); }
 }
 
@@ -2376,7 +2440,7 @@ async function runSrReview() {
     const res = await sample.json(srPrompt(reqText, meta, picked, imgNotes), { modelTier: "complex", signal, images: images.length ? images : undefined });
     if (!res || typeof res !== "object") throw { code: "invalid_json" };
     SR.result = res;
-    histAdd("sr", `Substitution ${res.request_number || meta.num || ""}${res.title ? " · " + res.title : ""}`.trim(), String(res.recommended_action || ""), { num: meta.num, spec: meta.spec, result: res });
+    SR.hist = histAdd("sr", `Substitution ${res.request_number || meta.num || ""}${res.title ? " · " + res.title : ""}`.trim(), String(res.recommended_action || ""), { num: meta.num, spec: meta.spec, result: res });
     setSrStatus(`Searched ${doc.pages.length} project manual pages; reviewed the ${picked.length} most related.`);
     $("#srShow").hidden = false;
     showSrResult(res, false);
@@ -2394,6 +2458,7 @@ function showSrResult(r, example) {
   const stLabel = { complies: "Complies", deviation: "Deviation", missing: "Missing", unclear: "Unclear" };
   const stCls = { complies: "hi", deviation: "bad", missing: "md", unclear: "lo" };
   const met = { yes: ["hi", "Met"], no: ["bad", "Not met"], unclear: ["lo", "Unclear"] };
+  const comp = Array.isArray(r.comparison) ? r.comparison : [], proc = Array.isArray(r.procedure) ? r.procedure : [], need = Array.isArray(r.information_needed) ? r.information_needed : [];
   const allowed = { yes: "Substitutions allowed", no: "No substitutions allowed", "or equal": "“Or equal” allowed", unclear: "Substitution allowance unclear" };
   const src = ss => (Array.isArray(ss) ? ss : []).map(s => `<div class="srcref"><span class="sref">Project manual, p. ${esc(String(s.page || "?"))}${s.paragraph ? " · " + esc(String(s.paragraph)) : ""}</span>${s.excerpt ? `<q>${esc(String(s.excerpt))}</q>` : ""}</div>`).join("");
   const html = `
@@ -2409,26 +2474,28 @@ function showSrResult(r, example) {
     <div class="tally"><span class="conf ${r.substitutions_allowed === "no" ? "bad" : r.substitutions_allowed === "unclear" ? "lo" : "hi"}">${esc(allowed[r.substitutions_allowed] || "Substitution allowance unclear")}</span></div>
     ${r.summary ? `<p class="rsum">${esc(String(r.summary))}</p>` : ""}
     <span class="label">Product comparison</span>
-    ${(r.comparison || []).length ? r.comparison.map(c => `
+    ${comp.length ? comp.map((c, i) => `
       <article class="ans">
         <div class="ans-h"><span class="conf ${stCls[c.status] || "lo"}">${esc(stLabel[c.status] || String(c.status || ""))}</span><span class="chk-item">${esc(String(c.item || ""))}</span></div>
         <div class="cmp"><div><span class="label">Proposed</span><p>${esc(String(c.proposed || "—"))}</p></div><div><span class="label">Required</span><p>${esc(String(c.required || "—"))}</p></div></div>
         ${src(c.sources)}
+        ${IK.controls(i)}
       </article>`).join("") : `<p class="none">No product requirements were found to compare.</p>`}
     <span class="label">Substitution procedures</span>
-    ${(r.procedure || []).length ? r.procedure.map(p => `
+    ${proc.length ? proc.map((p, j) => `
       <div class="find"><span class="conf ${(met[p.met] || met.unclear)[0]}">${(met[p.met] || met.unclear)[1]}</span>
-        <span class="ft"><b>${esc(String(p.requirement || ""))}</b>${p.note ? ` · ${esc(String(p.note))}` : ""}${src(p.sources)}</span><span></span></div>`).join("") : `<p class="none">The substitution procedures section wasn't found in the project manual.</p>`}
-    ${(r.information_needed || []).length ? `<span class="label">Information to request</span><ul class="nf">${r.information_needed.map(x => `<li>${esc(String(x))}</li>`).join("")}</ul>` : ""}
-    <div class="draft-h"><span class="label">Draft response</span><button class="btn sm" type="button" id="srCopy">Copy response</button></div>
-    <pre class="out" id="srDraft">${esc(String(r.draft_response || ""))}</pre>
+        <span class="ft"><b>${esc(String(p.requirement || ""))}</b>${p.note ? ` · ${esc(String(p.note))}` : ""}${src(p.sources)}</span>${IK.controls(comp.length + j)}</div>`).join("") : `<p class="none">The substitution procedures section wasn't found in the project manual.</p>`}
+    ${need.length ? `<span class="label">Information to request</span>${need.map((x, k) => `<div class="find"><span class="conf md">Request</span><span class="ft">${esc(String(x))}</span>${IK.controls(comp.length + proc.length + k)}</div>`).join("")}` : ""}
+    ${IK.box("Summary", "Check \u201cIssue has been reviewed\u201d on an item above, then add it here. Edit freely before you respond.")}
+    <details class="aidraft"><summary>AI draft response</summary><pre class="out" id="srDraft">${esc(String(r.draft_response || ""))}</pre></details>
     <p class="note">AI-generated from the project manual only. The architect makes the final decision; verify each cited paragraph.</p>`;
   openModal(`Substitution request${r.request_number ? " · " + r.request_number : ""}${r.title ? " · " + r.title : ""}`, html, true);
-  $("#srCopy").addEventListener("click", () => {
-    const txt = $("#srDraft").textContent;
-    const fb = () => { const rg = document.createRange(); rg.selectNodeContents($("#srDraft")); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); toast("Text selected. Press Ctrl+C to copy."); };
-    try { navigator.clipboard.writeText(txt).then(() => toast("Response copied"), fb); } catch (e) { fb(); }
-  });
+  const ps = ss => IK.src((ss || []).map(s => ({ paragraph: s.paragraph, file: "Project manual", page: s.page })));
+  IK.wire(r, [
+    ...comp.map(c => `${String(c.item || "")}: ${stLabel[c.status] || c.status || ""}. Proposed: ${String(c.proposed || "\u2014")}. Required: ${String(c.required || "\u2014")}${ps(c.sources) ? ` (${ps(c.sources)})` : ""}.`),
+    ...proc.map(p => `${String(p.requirement || "")}: ${(met[p.met] || met.unclear)[1]}${p.note ? `. ${String(p.note)}` : ""}${ps(p.sources) ? ` (${ps(p.sources)})` : ""}.`),
+    ...need.map(x => `Provide: ${String(x)}`)
+  ], example ? null : IK.persistTo(SR, r));
 }
 
 const SR_EXAMPLE = {
@@ -3066,9 +3133,9 @@ function resetTools() {
   $("#owu-week").value = "";
   ["company", "officer", "title", "address", "client", "purpose", "ai3name", "ai3title"].forEach(k => { WV[k].value = ""; });
   WV.date.value = "";
-  RFI.file = null; RFI.result = null; $("#rfiText").value = ""; $("#rfiNum").value = ""; $("#rfiDropName").textContent = "Drop the RFI PDF here"; $("#rfiDropHint").textContent = "or click to browse"; $("#rfiDrop").classList.remove("has"); $("#rfiShow").hidden = true; setRfiStatus("");
-  SUB.file = null; SUB.result = null; ["subNum", "subSpec", "subDesc"].forEach(id => { $("#" + id).value = ""; }); $("#subDropName").textContent = "Drop the submittal PDF here"; $("#subDrop").classList.remove("has"); $("#subShow").hidden = true; setSubStatus("");
-  SR.file = null; SR.result = null; ["srNum", "srSpec", "srText"].forEach(id => { $("#" + id).value = ""; }); $("#srDropName").textContent = "Drop the substitution request PDF here"; $("#srDrop").classList.remove("has"); $("#srShow").hidden = true; setSrStatus("");
+  RFI.file = null; RFI.result = null; RFI.hist = null; $("#rfiText").value = ""; $("#rfiNum").value = ""; $("#rfiDropName").textContent = "Drop the RFI PDF here"; $("#rfiDropHint").textContent = "or click to browse"; $("#rfiDrop").classList.remove("has"); $("#rfiShow").hidden = true; setRfiStatus("");
+  SUB.file = null; SUB.result = null; SUB.hist = null; ["subNum", "subSpec", "subDesc"].forEach(id => { $("#" + id).value = ""; }); $("#subDropName").textContent = "Drop the submittal PDF here"; $("#subDrop").classList.remove("has"); $("#subShow").hidden = true; setSubStatus("");
+  SR.file = null; SR.result = null; SR.hist = null; ["srNum", "srSpec", "srText"].forEach(id => { $("#" + id).value = ""; }); $("#srDropName").textContent = "Drop the substitution request PDF here"; $("#srDrop").classList.remove("has"); $("#srShow").hidden = true; setSrStatus("");
   ADA.snips.forEach(s => URL.revokeObjectURL(s.url)); ADA.snips = []; ADA.result = null; renderAdaSnips(); $("#adaShow").hidden = true; setAdaStatus("");
   PAY.file = null; PAY.review = null; PL = payDefaults();
   PL.to = (() => { const o = team.find(t => t.role === "Owner") || {}; const a = (o.address || "").split(", "); return [o.firm, a.slice(0, -2).join(", "), a.slice(-2).join(", ")].filter(Boolean).join("\n"); })();
@@ -3163,9 +3230,9 @@ function restoreHist(h) {
     if (d.dateIso) WV.date.value = d.dateIso;
     markEdits(); renderWaiver(); return toast("Waiver loaded from history");
   }
-  if (h.tool === "rfi") { $("#rfiText").value = d.question || ""; $("#rfiNum").value = d.num || ""; RFI.result = d.result; $("#rfiShow").hidden = false; return showRfiResult(d.result, false); }
-  if (h.tool === "sub") { $("#subNum").value = d.num || ""; $("#subSpec").value = d.spec || ""; $("#subDesc").value = d.desc || ""; SUB.result = d.result; $("#subShow").hidden = false; return showSubResult(d.result, false); }
-  if (h.tool === "sr") { $("#srNum").value = d.num || ""; $("#srSpec").value = d.spec || ""; SR.result = d.result; $("#srShow").hidden = false; return showSrResult(d.result, false); }
+  if (h.tool === "rfi") { RFI.hist = h; $("#rfiText").value = d.question || ""; $("#rfiNum").value = d.num || ""; RFI.result = d.result; $("#rfiShow").hidden = false; return showRfiResult(d.result, false); }
+  if (h.tool === "sub") { SUB.hist = h; $("#subNum").value = d.num || ""; $("#subSpec").value = d.spec || ""; $("#subDesc").value = d.desc || ""; SUB.result = d.result; $("#subShow").hidden = false; return showSubResult(d.result, false); }
+  if (h.tool === "sr") { SR.hist = h; $("#srNum").value = d.num || ""; $("#srSpec").value = d.spec || ""; SR.result = d.result; $("#srShow").hidden = false; return showSrResult(d.result, false); }
   if (h.tool === "ada") { ADA.result = d.result; $("#adaShow").hidden = false; return showAdaResult(d.result, false, d.thumbs || []); }
   if (h.tool === "pay") {
     PAY.review = d.review ? clone(d.review) : null; PAY.example = false; PAY.file = null;
