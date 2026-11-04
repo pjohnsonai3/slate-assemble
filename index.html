@@ -27,6 +27,8 @@
   --slate-dk: #3c5a67;
   --brass: #c4914a;        /* Sidecar add-service accent */
   --on-accent: #ffffff;
+  --maxw: 1560px;           /* content width; extra screen width becomes side margin */
+  --panel: #eef0f2;        /* one grey for the clock, calendar, milestones and notes */
   --ok: #3f8f6b;
   --f-display: "Montserrat", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
@@ -43,19 +45,21 @@ body {
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+*, *::before, *::after { border-radius: 0 !important; }
+.hero-dots button, .pg-dot, .ans-h b, .gi, .c-dot { border-radius: 50% !important; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, .drop:focus-visible, .tile:focus-visible { outline: 2px solid var(--slate); outline-offset: 2px; }
 
 .window { min-height: 100%; display: flex; flex-direction: column; background: var(--surface); }
 .window > main { flex: 1 0 auto; }
-.gut { padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px)); }
+.gut { padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px), calc((100% - var(--maxw)) / 2)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px), calc((100% - var(--maxw)) / 2)); }
 /* Header band */
 .masthead {
   background: var(--surface);
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  padding-block: 16px 18px;
-  padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px));
-  border-bottom: 1px solid var(--line-2);
+  padding-block: 12px 6px;
+  padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px), calc((100% - var(--maxw)) / 2)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px), calc((100% - var(--maxw)) / 2));
+  border-bottom: 0;
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
 }
 .brand { display: flex; align-items: flex-end; gap: 12px; min-width: 0; }
@@ -63,15 +67,16 @@ button:focus-visible, .drop:focus-visible, .tile:focus-visible { outline: 2px so
 .brand .by { font-family: var(--f-display); font-size: 12px; letter-spacing: .12em; color: var(--sub); padding-bottom: 2px; }
 
 
-main { padding-block: 28px 36px; padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px)); display: grid; gap: 28px; align-content: start; }
+main { padding-block: 28px 36px; padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px), calc((100% - var(--maxw)) / 2)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px), calc((100% - var(--maxw)) / 2)); display: grid; gap: 28px; align-content: start; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .proj-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .projpick select {
   width: 100%; font-family: var(--f-display); font-weight: 500; font-size: 24px; line-height: 1.2; color: var(--fg);
-  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%234a6e7e' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
-  border: 1px solid var(--line-2); border-radius: 8px; padding: 10px 44px 10px 14px; appearance: none; -webkit-appearance: none; cursor: pointer; text-overflow: ellipsis;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%234a6e7e' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 6px center;
+  border: 0; border-radius: 0; padding: 4px 40px 4px 0; appearance: none; -webkit-appearance: none; cursor: pointer; text-overflow: ellipsis;
 }
-.projpick select:hover, .projpick select:focus { border-color: var(--slate); outline: none; }
+.projpick select:hover { color: var(--slate); }
+.projpick select:focus-visible { outline: 2px solid var(--slate); outline-offset: 2px; }
 .histbar { display: flex; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 14px; }
 .histbar .hc { color: var(--muted); font-weight: 400; }
 .hist { display: grid; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
@@ -158,7 +163,7 @@ main { padding-block: 28px 36px; padding-left: max(clamp(16px, 3vw, 48px), env(s
 .status {
   display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
   padding-block: 10px; background: var(--surface-2); border-top: 1px solid var(--line-2);
-  padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px));
+  padding-left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px), calc((100% - var(--maxw)) / 2)); padding-right: max(clamp(16px, 3vw, 48px), env(safe-area-inset-right, 0px), calc((100% - var(--maxw)) / 2));
   font-size: 12px; color: var(--sub);
 }
 .clock { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--fg); }
@@ -367,6 +372,7 @@ td.c { font-family: var(--f-mono); font-size: 12px; color: var(--slate); white-s
 .ans-h .sref { margin-left: 4px; }
 /* Current codes */
 .addr { margin: -4px 0 0; font-size: 13px; color: var(--sub); }
+.desc.ph { font-family: var(--f-display); font-size: 11px; font-weight: 600; letter-spacing: .16em; color: var(--muted); }
 .cd-top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
 .cd-from { color: var(--muted); font-size: 11px; margin-left: 6px; }
 .cd-check { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; }
@@ -412,6 +418,96 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .aidraft { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
 .aidraft summary { cursor: pointer; font-size: 12.5px; color: var(--sub); font-weight: 600; }
 .aidraft[open] summary { margin-bottom: 8px; }
+/* Dashboard layout */
+.dash { display: grid; gap: 18px; padding-block: 8px 28px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 2.3fr);
+  grid-template-areas: "hero time files" "proj miles tools" "proj notes tools"; align-items: stretch; }
+.d-hero { grid-area: hero; } .d-time { grid-area: time; } .d-files { grid-area: files; min-width: 0; }
+.d-proj { grid-area: proj; min-width: 0; } .d-miles { grid-area: miles; } .d-notes { grid-area: notes; } .d-tools { grid-area: tools; min-width: 0; }
+.gpanel { background: var(--panel); padding: 16px 18px; min-width: 0; }
+.g-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.g-head h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--fg); }
+.g-sub { font-size: 11px; color: var(--muted); }
+/* renderings */
+.d-hero { position: relative; border-radius: 6px; overflow: hidden; background: #2a2f33; min-height: 320px; min-width: 0; }
+.hero-stage { position: absolute; inset: 0; }
+.hero-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.4s ease; }
+.hero-stage img.on { opacity: 1; }
+.hero-empty { position: absolute; inset: 14px; border: 1.5px dashed rgba(255,255,255,.35); border-radius: 6px; display: grid; place-content: center; justify-items: center; gap: 6px; color: #e9edf0; text-align: center; padding: 16px; }
+.hero-empty b { font-family: var(--f-display); font-weight: 500; font-size: 16px; letter-spacing: .04em; }
+.hero-empty span { font-size: 12px; color: #b9c3ca; }
+.hero-empty .btn { color: #fff; border-color: rgba(255,255,255,.5); margin-top: 6px; }
+.d-hero.over .hero-empty, .d-hero.over { outline: 3px solid var(--brass); outline-offset: -3px; }
+.hero-bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 26px 14px 12px; background: linear-gradient(transparent, rgba(0,0,0,.55)); opacity: 0; transition: opacity .2s; }
+.d-hero:hover .hero-bar, .d-hero:focus-within .hero-bar { opacity: 1; }
+.hero-bar .btn { background: rgba(255,255,255,.92); color: var(--fg); border: 0; }
+.hero-bar .grp { display: flex; gap: 8px; }
+.hero-dots { display: flex; gap: 6px; }
+.hero-dots button { width: 9px; height: 9px; border-radius: 50%; border: 0; background: rgba(255,255,255,.5); padding: 0; }
+.hero-dots button.on { background: #fff; }
+/* clock + calendar */
+.d-time { display: grid; gap: 18px; grid-template-rows: auto 1fr; min-width: 0; }
+.clock-panel { display: grid; place-items: center; padding: 18px 26px; }
+.clock-panel svg.clock { max-width: 230px; }
+.cal-panel { display: grid; gap: 8px; align-content: start; }
+.cal-panel .cal-my { display: block; text-align: left; font-family: var(--f-display); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #333; padding: 0; }
+.cal-panel .cal-my b { font-weight: 600; }
+.time-top { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.clock-box { background: transparent; padding: 0; }
+.cal-my { display: grid; text-align: right; gap: 2px; align-content: start; }
+
+
+svg.clock { width: 100%; height: auto; display: block; }
+.c-rim { fill: #1b1d1f; } .c-face { fill: var(--panel); }
+.c-tick { stroke: #1b1d1f; stroke-width: 1; } .c-tick.big { stroke-width: 2.6; }
+.c-num { font-family: var(--f-body); font-size: 17px; font-weight: 500; fill: #1b1d1f; text-anchor: middle; dominant-baseline: central; }
+.c-digital { font-family: var(--f-mono); font-size: 10.5px; fill: #3b4248; text-anchor: middle; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.c-hour { stroke: #1b1d1f; stroke-width: 5.5; stroke-linecap: round; } .c-min { stroke: #1b1d1f; stroke-width: 3.6; stroke-linecap: round; }
+.c-sec { stroke: #c0392b; stroke-width: 1.4; stroke-linecap: round; } .c-secdot { fill: #c0392b; } .c-pin { fill: #fff; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; font-variant-numeric: tabular-nums; }
+.cal-grid { color: #111; }
+.cal-grid .wd { font-size: 9.5px; font-weight: 600; color: #333; padding-bottom: 3px; }
+.cal-grid .dd { font-family: var(--f-mono); font-size: 12.5px; padding: 3px 0; border-radius: 3px; }
+.cal-grid .dd.today { background: none; color: #000; font-weight: 800; }
+/* milestones */
+.ms-table { width: 100%; border-collapse: collapse; }
+.ms-table th { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #59636a; font-weight: 600; text-align: left; padding: 0 6px 6px 0; border: 0; }
+.ms-table td { padding: 7px 6px 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; vertical-align: top; }
+.ms-table td:first-child { color: var(--slate); font-weight: 500; }
+.ms-table .r { text-align: right; font-variant-numeric: tabular-nums; }
+.ms-table td.dt { font-family: var(--f-mono); font-size: 12.5px; white-space: nowrap; }
+.ms-table .soon { color: #a3402c; font-weight: 600; } .ms-table .past { color: var(--muted); }
+.ms-empty { font-size: 13px; color: var(--muted); }
+/* field notes */
+.d-notes { display: flex; flex-direction: column; }
+#fieldNotes { flex: 1; min-height: 150px; width: 100%; resize: vertical; border: 1px solid #d9dde0; border-radius: 4px; background: #fff; padding: 10px 12px; font-family: var(--f-body); font-size: 13.5px; line-height: 1.5; color: var(--fg); }
+#fieldNotes:focus { outline: none; border-color: var(--slate); background: #fff; }
+/* compact tiles + files in the dashboard */
+.d-tools .grid { gap: 10px; }
+.d-tools .tile { min-height: 84px; padding: 11px 13px; gap: 4px; }
+.d-tools .tile .t-name { font-size: 13px; }
+.d-tools .tile .t-hint { font-size: 11px; line-height: 1.35; }
+.d-tools .tile .t-kind { font-size: 9px; }
+.d-files .row { min-height: 29px; grid-template-columns: 24px minmax(96px, 140px) minmax(0,1fr) auto; gap: 8px; }
+.d-files .row { grid-template-columns: 30px minmax(120px, 170px) minmax(0,1fr) auto; }
+.cover-row { border: 1px solid var(--line-2); border-bottom: 0; background: var(--surface-2); margin-bottom: -10px; }
+.cover-row .disc { font-weight: 600; }
+.cover-row + .register { border-top: 1px solid var(--line-2); }
+.tool-links { display: flex; gap: 18px; align-items: baseline; }
+.txtlink { background: none; border: 0; padding: 0; font-family: var(--f-display); font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--slate); cursor: pointer; }
+.txtlink:hover { color: var(--brass); text-decoration: underline; text-underline-offset: 3px; }
+.d-files .disc { font-size: 12.5px; }
+.d-files .drop { font-size: 11px; }
+.d-files .files-head small { display: none; }
+.d-proj .projpick select { font-size: 22px; }
+@media (max-width: 1280px) {
+  .dash { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "hero time" "proj miles" "files notes" "tools tools"; }
+}
+@media (max-width: 760px) {
+  .dash { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "proj" "time" "miles" "notes" "files" "tools"; }
+  .d-tools .grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-stage img { transition: none; } }
 .pickrow { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
 .pickrow select { flex: 1; min-width: 200px; width: auto; }
 .edited { margin-left: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--brass); font-weight: 600; }
@@ -433,6 +529,18 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
   .logrow { grid-template-columns: minmax(0,1fr); gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+
+/* Button outlines match the Current files lines (1px, same grey) */
+.btn.ghost, .pop, .tile, .tile.ready, .tile.tbd, .hero-bar .btn { border-width: 1px; border-color: var(--line-2); }
+.tile.ready { border-color: var(--line-2); }
+.tile:hover, .tile.over, .btn.ghost:hover { border-color: var(--slate); }
+.back { border-width: 1px; }
+.dropzone, .hero-empty { border-width: 1px; }
+
+/* Project name: no outline box */
+.projpick select { border: 0 !important; padding-left: 0; background-position: right 4px center; }
+.projpick select:hover, .projpick select:focus-visible { border: 0; outline: none; color: var(--slate); }
+.projpick select:focus-visible { box-shadow: 0 2px 0 var(--slate); }
 </style>
 
 
@@ -446,47 +554,80 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
     </div>
   </header>
 
-  <main id="home">
-    <section class="top">
-      <div class="project">
-        <div class="proj-head">
-          <label class="label" for="projSel">Project</label>
-          <button class="linkbtn dark" type="button" id="projEdit">Edit project</button>
-        </div>
-        <div class="projpick"><select id="projSel" aria-label="Switch project"></select></div>
-        <h1 id="pTitle" class="vh">Peachtree Pediatric Clinic Renovation</h1>
-        <div class="meta">
-          <span class="num" id="pNum">ai3-2417</span>
-          <span class="phase" id="pPhase">Construction Administration</span>
-        </div>
-        <p class="addr" id="pAddr">3350 Peachtree Rd NE, Atlanta, GA 30326</p>
-        <p class="desc" id="pDesc">Interior renovation of an 18,400 SF two-story outpatient clinic: new exam suite, nurse station, and accessible restrooms on Level 1; staff support on Level 2.</p>
-        <div class="popbtns">
-          <button class="pop" type="button" id="teamBtn">
-            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c2.6.2 4.4 1.8 5 4.6"/></svg>
-            Project team
-          </button>
-          <button class="pop" type="button" id="codesBtn">
-            <svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 11h8M8 15h8M8 19h5"/></svg>
-            Current codes
-          </button>
-        </div>
-        <div class="source">Read from cover sheet <b id="coverName">A-000_Cover.pdf</b> <span>·</span> <button class="linkbtn" type="button" id="coverBtn">Replace cover sheet</button></div>
+  <main id="home" class="dash">
+    <section class="d-hero" id="hero" aria-label="Project renderings">
+      <div class="hero-stage" id="heroStage"></div>
+      <div class="hero-empty" id="heroEmpty">
+        <b>Drop up to 3 project renderings</b>
+        <span>JPG or PNG · they fade from one to the next</span>
+        <button class="btn ghost sm" type="button" id="heroAdd0">Choose images</button>
       </div>
+      <div class="hero-bar" id="heroBar" hidden>
+        <div class="hero-dots" id="heroDots"></div>
+        <div class="grp"><button class="btn ghost sm" type="button" id="heroAdd">Add rendering</button><button class="btn ghost sm" type="button" id="heroDel">Remove this one</button></div>
+      </div>
+    </section>
 
+    <section class="d-time" aria-label="Clock and calendar">
+      <div class="gpanel clock-panel">
+      <svg class="clock" id="clockSvg" viewBox="0 0 200 200" role="img" aria-label="Current time">
+        <circle cx="100" cy="100" r="94" class="c-rim"/>
+        <circle cx="100" cy="100" r="88" class="c-face"/>
+        <g id="clockTicks"></g>
+        <g id="clockNums"></g>
+        <text x="100" y="138" class="c-digital" id="clockDigital">--:--:--</text>
+        <line x1="100" y1="100" x2="100" y2="54" class="c-hour" id="hHour"/>
+        <line x1="100" y1="100" x2="100" y2="30" class="c-min" id="hMin"/>
+        <g id="hSec"><line x1="100" y1="116" x2="100" y2="22" class="c-sec"/><circle cx="100" cy="100" r="3.6" class="c-secdot"/></g>
+        <circle cx="100" cy="100" r="2" class="c-pin"/>
+      </svg>
+
+      </div>
+      <div class="gpanel cal-panel">
+        <div class="cal-my"><span id="calMonth">Month</span> <b id="calYear">Year</b></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </section>
+
+    <section class="d-files">
       <div class="files">
         <div class="files-head">
           <span class="label">Current files</span>
           <small>Drop the current set for each discipline, or click a row to browse</small>
         </div>
+        <div class="cover-row row" id="coverRow">
+          <span class="code">CS</span><span class="disc">Cover sheet</span>
+          <div class="drop has" id="coverDrop" tabindex="0" role="button" aria-label="Cover sheet: drop PDF or click to choose"><span id="coverName">A-000_Cover.pdf</span></div>
+          <span class="rowinfo"><button class="linkbtn dark" type="button" id="coverBtn">Replace</button></span>
+        </div>
         <div class="register" id="register"></div>
       </div>
     </section>
 
-    <section>
+    <section class="d-proj">
+      <div class="project">
+        <div class="projpick"><select id="projSel" aria-label="Switch project"></select></div>
+        <h1 id="pTitle" class="vh">Peachtree Pediatric Clinic Renovation</h1>
+        <span class="vh"><span id="pNum"></span><span id="pPhase"></span></span>
+        <p class="addr" id="pAddr">3350 Peachtree Rd NE, Atlanta, GA 30326</p>
+        <p class="desc" id="pDesc">Interior renovation of an 18,400 SF two-story outpatient clinic: new exam suite, nurse station, and accessible restrooms on Level 1; staff support on Level 2.</p>
+      </div>
+    </section>
+
+    <section class="d-miles gpanel" aria-labelledby="msH">
+      <div class="g-head"><h3 id="msH">Milestones</h3><button class="linkbtn dark" type="button" id="msEdit">Edit</button></div>
+      <table class="ms-table"><thead><tr><th>Milestone</th><th>Date</th><th class="r">Days remaining</th></tr></thead><tbody id="msBody"></tbody></table>
+    </section>
+
+    <section class="d-notes gpanel" aria-labelledby="fnH">
+      <div class="g-head"><h3 id="fnH">Field notes</h3><span class="g-sub" id="fnSaved"></span></div>
+      <textarea id="fieldNotes" placeholder="Notes from site visits, OAC meetings and calls. Saved with this project as you type."></textarea>
+    </section>
+
+    <section class="d-tools">
       <div class="tools-head">
         <span class="label">CA tools</span>
-        <small>Click a tool or drop a file on it</small>
+        <div class="tool-links"><button class="txtlink" type="button" id="teamBtn">Project team</button><button class="txtlink" type="button" id="codesBtn">Current codes</button></div>
       </div>
       <div class="grid" id="grid"></div>
     </section>
@@ -1019,6 +1160,9 @@ $("#codesBtn").addEventListener("click", () => openCodes());
 
 /* Cover sheet */
 $("#coverBtn").addEventListener("click", () => { pickTarget = { kind: "cover" }; $("#picker").accept = ".pdf"; $("#picker").click(); });
+$("#coverDrop").addEventListener("click", () => $("#coverBtn").click());
+$("#coverDrop").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#coverBtn").click(); } });
+wireDrop($("#coverDrop"), f => loadCoverSheet(f));
 $("#picker").addEventListener("change", e => {
   const f = e.target.files[0]; e.target.value = "";
   if (!f || !pickTarget) return;
@@ -2982,7 +3126,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 
 function seedProjects() {
   return [
-    { id: "p-peachtree", title: $("#pTitle").textContent, number: $("#pNum").textContent, phase: "Construction Administration",
+    { id: "p-peachtree", title: "Peachtree Pediatric Clinic Renovation", number: "ai3-2417", phase: "Construction Administration",
       address: CS.address, desc: $("#pDesc").textContent, coverName: $("#coverName").textContent,
       team: clone(team), cover: clone(CS.cover), check: clone(CS.check), overrides: {}, submittal: "",
       files: clone(disciplines), owuLog: clone(owuLog), sample: true },
@@ -3114,18 +3258,19 @@ async function loadProject(id) {
   // reset tool screens
   resetTools();
   $("#statusMsg").textContent = `Ready · ${p.number ? p.number + " · " : ""}${p.title}`;
+  if (window.onProjectLoaded) window.onProjectLoaded(p);
 }
 function renderProjectHeader() {
   const p = proj();
   $("#pTitle").textContent = p.title; $("#pNum").textContent = p.number || "—";
   $("#pPhase").textContent = p.phase || "Construction Administration";
-  $("#pAddr").textContent = p.address || "Add the project address (Edit project, or read it from the cover sheet)";
-  $("#pAddr").classList.toggle("muted", !p.address);
-  $("#pDesc").textContent = p.desc || ""; $("#pDesc").hidden = !p.desc;
-  $("#coverName").textContent = p.coverName || "No cover sheet yet";
-  $("#coverBtn").textContent = p.coverName ? "Replace cover sheet" : "Add cover sheet";
+  $("#pAddr").textContent = p.address || ""; $("#pAddr").hidden = !p.address;
+  $("#pDesc").textContent = p.desc || "PROJECT DESCRIPTION"; $("#pDesc").hidden = false; $("#pDesc").classList.toggle("ph", !p.desc);
+  $("#coverName").textContent = p.coverName || "Drop the cover sheet PDF or click to browse";
+  $("#coverBtn").textContent = p.coverName ? "Replace" : "Add";
+  $("#coverDrop").classList.toggle("has", !!p.coverName);
   const sel = $("#projSel");
-  sel.innerHTML = PROJECTS.map(x => `<option value="${esc(x.id)}">${esc((x.number ? x.number + " · " : "") + x.title)}</option>`).join("") + `<option value="__new">+ New project…</option>`;
+  sel.innerHTML = PROJECTS.map(x => `<option value="${esc(x.id)}">${esc((x.number ? x.number + " · " : "") + x.title)}</option>`).join("") + `<option value="__new">+ New project…</option><option value="__edit">Edit project…</option>`;
   sel.value = p.id;
 }
 function resetTools() {
@@ -3144,8 +3289,7 @@ function resetTools() {
 }
 
 /* Project picker, new and edit */
-$("#projSel").addEventListener("change", e => { if (e.target.value === "__new") { e.target.value = CUR; return editProject(null); } loadProject(e.target.value); });
-$("#projEdit").addEventListener("click", () => editProject(CUR));
+$("#projSel").addEventListener("change", e => { const v = e.target.value; if (v === "__new" || v === "__edit") { e.target.value = CUR; return editProject(v === "__new" ? null : CUR); } loadProject(v); });
 function editProject(id) {
   const isNew = !id; const p = isNew ? { title: "", number: "", phase: "Construction Administration", address: "", desc: "", team: [{ role: "Owner", firm: "", contact: "", title: "", address: "" }, ...ai3Team(), { role: "General contractor", firm: "", contact: "", title: "", address: "", gc: true }] } : proj();
   const tRow = (t, i) => `<tr data-r="${i}">${["role", "firm", "contact", "title", "address"].map(k => `<td><input type="text" data-k="${k}" value="${esc(t[k] || "")}" aria-label="${k}"></td>`).join("")}<td><button class="x" type="button" data-del="${i}" aria-label="Remove row">&#10005;</button></td></tr>`;
@@ -3245,6 +3389,148 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-hist
 /* Start */
 STORE.allHist().then(updateHistCounts);
 loadProject(CUR);
+
+/* ---------- Dashboard: renderings, clock, calendar, milestones, field notes ---------- */
+(function () {
+  const MS_SEED = {
+    "p-peachtree": [{ name: "Substantial completion", date: "2027-03-15" }, { name: "FFE install", date: "2027-03-22" }, { name: "Owner move-in", date: "2027-04-05" }],
+    "p-stalbans": [{ name: "Completion", date: "" }, { name: "FFE install", date: "" }, { name: "Art install", date: "" }, { name: "Drapery install", date: "" }]
+  };
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Clock */
+  const ticks = $("#clockTicks"), nums = $("#clockNums");
+  for (let i = 0; i < 60; i++) {
+    const a = i * 6 * Math.PI / 180, big = i % 5 === 0, r1 = big ? 76 : 80, r2 = 85;
+    ticks.insertAdjacentHTML("beforeend", `<line class="c-tick${big ? " big" : ""}" x1="${100 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${100 + r2 * Math.sin(a)}" y2="${100 - r2 * Math.cos(a)}"/>`);
+  }
+  for (let h = 1; h <= 12; h++) { const a = h * 30 * Math.PI / 180; nums.insertAdjacentHTML("beforeend", `<text class="c-num" x="${100 + 64 * Math.sin(a)}" y="${100 - 64 * Math.cos(a)}">${h}</text>`); }
+  function clock() {
+    const d = new Date(), s = d.getSeconds(), m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+    $("#hHour").setAttribute("transform", `rotate(${h * 30} 100 100)`);
+    $("#hMin").setAttribute("transform", `rotate(${m * 6} 100 100)`);
+    $("#hSec").setAttribute("transform", `rotate(${s * 6} 100 100)`);
+    $("#clockDigital").textContent = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    $("#clockSvg").setAttribute("aria-label", "Current time " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }));
+  }
+  clock(); setInterval(clock, 1000);
+
+  /* Calendar */
+  let calKey = "";
+  function calendar() {
+    const d = new Date(), key = d.toDateString(); if (key === calKey) return; calKey = key;
+    $("#calMonth").textContent = d.toLocaleDateString("en-US", { month: "long" });
+    $("#calYear").textContent = d.getFullYear();
+    const first = new Date(d.getFullYear(), d.getMonth(), 1).getDay(), days = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    let html = ["S", "M", "T", "W", "T", "F", "S"].map(w => `<span class="wd">${w}</span>`).join("");
+    for (let i = 0; i < first; i++) html += "<span></span>";
+    for (let n = 1; n <= days; n++) html += `<span class="dd${n === d.getDate() ? " today" : ""}"${n === d.getDate() ? ' aria-current="date"' : ""}>${String(n).padStart(2, "0")}</span>`;
+    $("#calGrid").innerHTML = html;
+    renderMilestones();
+  }
+
+  /* Milestones */
+  const dayDiff = isoD => { const [y, m, dd] = isoD.split("-").map(Number); const t = new Date(y, m - 1, dd), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); };
+  const shortDate = isoD => { const [y, m, dd] = isoD.split("-").map(Number); const t = new Date(y, m - 1, dd); return t.toLocaleDateString("en-US", { month: "short", day: "2-digit" }) + (y !== new Date().getFullYear() ? `, ${y}` : ""); };
+  function milestones() { const p = proj(); if (!Array.isArray(p.milestones)) { p.milestones = clone(MS_SEED[p.id] || []); persistProjects(); } return p.milestones; }
+  function renderMilestones() {
+    const ms = milestones().slice().sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+    $("#msBody").innerHTML = ms.length ? ms.map(m => {
+      if (!m.date) return `<tr><td>${esc(m.name)}</td><td class="dt past">Add date</td><td class="r past">—</td></tr>`;
+      const n = dayDiff(m.date);
+      const cls = n < 0 ? "past" : n <= 14 ? "soon" : "";
+      return `<tr><td>${esc(m.name)}</td><td class="dt">${esc(shortDate(m.date))}</td><td class="r ${cls}">${n < 0 ? "Passed" : n === 0 ? "Today" : n}</td></tr>`;
+    }).join("") : `<tr><td colspan="3" class="ms-empty">No milestones yet. Click Edit to add them.</td></tr>`;
+  }
+  $("#msEdit").addEventListener("click", () => {
+    const row = (m, i) => `<tr><td><input type="text" data-mn="${i}" value="${esc(m.name || "")}" aria-label="Milestone name"></td><td><input type="date" data-md="${i}" value="${esc(m.date || "")}" aria-label="Date"></td><td><button class="x" type="button" data-mx aria-label="Remove">&#10005;</button></td></tr>`;
+    openModal("Milestones", `
+      <div class="tablewrap"><table class="ep-team"><thead><tr><th>Milestone</th><th>Date</th><th></th></tr></thead><tbody id="msRows">${milestones().map(row).join("")}</tbody></table></div>
+      <button class="linkbtn dark" type="button" id="msAdd">+ Add milestone</button>
+      <div class="actions"><span></span><div class="grp"><button class="btn ghost" type="button" id="msCancel">Cancel</button><button class="btn" type="button" id="msSave">Save</button></div></div>`);
+    const wire = () => document.querySelectorAll("[data-mx]").forEach(b => { b.onclick = () => b.closest("tr").remove(); });
+    wire();
+    $("#msAdd").addEventListener("click", () => { $("#msRows").insertAdjacentHTML("beforeend", row({}, Date.now())); wire(); $("#msRows tr:last-child input").focus(); });
+    $("#msCancel").addEventListener("click", closeModal);
+    $("#msSave").addEventListener("click", () => {
+      proj().milestones = [...document.querySelectorAll("#msRows tr")].map(tr => ({ name: tr.querySelector("[data-mn]").value.trim(), date: tr.querySelector("[data-md]").value })).filter(m => m.name);
+      persistProjects(); renderMilestones(); closeModal(); toast("Milestones saved");
+    });
+  });
+
+  /* Field notes */
+  let nt;
+  $("#fieldNotes").addEventListener("input", e => {
+    clearTimeout(nt); $("#fnSaved").textContent = "Saving…";
+    nt = setTimeout(() => { proj().notes = e.target.value; proj().notesAt = Date.now(); persistProjects(); $("#fnSaved").textContent = "Saved " + new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }, 500);
+  });
+
+  /* Renderings: up to 3 per project, crossfade */
+  const MAXR = 3; let renders = [], cur = 0, timer = null, loadToken = 0;
+  const rKey = (pid, slot) => `${pid}|render|${slot}`;
+  function paintHero() {
+    const st = $("#heroStage");
+    st.innerHTML = renders.map((r, i) => `<img src="${r.url}" alt="Project rendering ${i + 1} of ${renders.length}" class="${i === cur ? "on" : ""}">`).join("");
+    $("#heroEmpty").hidden = renders.length > 0;
+    $("#heroBar").hidden = renders.length === 0;
+    $("#heroDots").innerHTML = renders.length > 1 ? renders.map((_, i) => `<button type="button" aria-label="Show rendering ${i + 1}" class="${i === cur ? "on" : ""}" data-dot="${i}"></button>`).join("") : "";
+    $("#heroDots").querySelectorAll("[data-dot]").forEach(b => b.addEventListener("click", () => { show(+b.dataset.dot); restart(); }));
+    $("#heroAdd").disabled = false; $("#heroAdd").textContent = renders.length >= MAXR ? "Replace this one" : "Add rendering";
+    restart();
+  }
+  function show(i) {
+    cur = (i + renders.length) % renders.length;
+    $("#heroStage").querySelectorAll("img").forEach((im, k) => im.classList.toggle("on", k === cur));
+    $("#heroDots").querySelectorAll("[data-dot]").forEach((b, k) => b.classList.toggle("on", k === cur));
+  }
+  function restart() { clearInterval(timer); if (renders.length > 1) timer = setInterval(() => show(cur + 1), reduce ? 12000 : 6500); }
+  async function loadRenders(p) {
+    const tok = ++loadToken;
+    renders.forEach(r => URL.revokeObjectURL(r.url)); renders = []; cur = 0;
+    const slots = Array.isArray(p.renders) ? p.renders : [];
+    for (const slot of slots) { const f = await STORE.getFile(rKey(p.id, slot)); if (tok !== loadToken) return; if (f) renders.push({ slot, url: URL.createObjectURL(f) }); }
+    paintHero();
+  }
+  async function addRender(f) {
+    if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif)$/i.test(f.name)) return toast("Drop a JPG or PNG rendering");
+    const p = proj(); if (!Array.isArray(p.renders)) p.renders = [];
+    let slot; const replaced = renders.length >= MAXR;
+    if (replaced) { slot = renders[cur].slot; URL.revokeObjectURL(renders[cur].url); renders[cur] = { slot, url: URL.createObjectURL(f) }; }
+    else { slot = uid(); p.renders.push(slot); renders.push({ slot, url: URL.createObjectURL(f) }); cur = renders.length - 1; }
+    await STORE.putFile(rKey(p.id, slot), f); persistProjects(); paintHero();
+    toast(`Rendering ${replaced ? "replaced" : "added"}`);
+  }
+  async function delRender() {
+    if (!renders.length) return;
+    const p = proj(), r = renders.splice(cur, 1)[0];
+    URL.revokeObjectURL(r.url); p.renders = (p.renders || []).filter(s => s !== r.slot); await STORE.delFile(rKey(p.id, r.slot)); persistProjects();
+    cur = 0; paintHero(); toast("Rendering removed");
+  }
+  const hero = $("#hero");
+  hero.addEventListener("dragover", e => { e.preventDefault(); hero.classList.add("over"); });
+  hero.addEventListener("dragleave", e => { if (!hero.contains(e.relatedTarget)) hero.classList.remove("over"); });
+  hero.addEventListener("drop", async e => {
+    e.preventDefault(); hero.classList.remove("over");
+    const fs = [...(e.dataTransfer.files || [])].filter(f => /^image\//.test(f.type) || /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+    if (!fs.length) return toast("Drop a JPG or PNG rendering");
+    for (const f of fs.slice(0, MAXR)) await addRender(f);
+  });
+  const imgPicker = document.createElement("input"); imgPicker.type = "file"; imgPicker.accept = "image/*"; imgPicker.multiple = true; imgPicker.hidden = true; document.body.appendChild(imgPicker);
+  imgPicker.addEventListener("change", async () => { const fs = [...imgPicker.files]; imgPicker.value = ""; for (const f of fs.slice(0, MAXR)) await addRender(f); });
+  $("#heroAdd0").addEventListener("click", () => imgPicker.click());
+  $("#heroAdd").addEventListener("click", () => imgPicker.click());
+  $("#heroDel").addEventListener("click", delRender);
+
+  /* Project switching */
+  window.onProjectLoaded = p => {
+    renderMilestones();
+    $("#fieldNotes").value = p.notes || "";
+    $("#fnSaved").textContent = p.notesAt ? "Saved " + new Date(p.notesAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+    loadRenders(p);
+  };
+  calendar(); setInterval(calendar, 60000);
+  window.onProjectLoaded(proj());
+})();
 
 
 /* Clock */
